@@ -1,0 +1,13 @@
+[Unit]
+Description=Cabinet
+After=network.target network-online.target
+Requires=network-online.target
+
+[Service]
+Type=exec
+User=cabinet
+Group=cabinet
+ExecStart=/usr/local/bin/cabinet
+
+[Install]
+WantedBy=multi-user.target
