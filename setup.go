@@ -74,7 +74,42 @@ func makeCabinetDirectory() error {
 		}
 	}
 
-	chownToCabinet("/usr/local/share/Cabinet")
+	err = chownToCabinet("/usr/local/share/Cabinet")
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func makeCabinetDataDirectory() error {
+	err := os.Mkdir("/usr/local/share/CabinetData/", 0750)
+	if err != nil {
+		if os.IsExist(err) {
+			Logger.Info("skipping creating cabinet data path because it already exists")
+		} else {
+			return err
+		}
+	}
+
+	err = chownToCabinet("/usr/local/share/CabinetData/")
+	if err != nil {
+		return err
+	}
+
+	err = os.Mkdir("/usr/local/share/CabinetData/tmpls", 0750)
+	if err != nil {
+		if os.IsExist(err) {
+			Logger.Info("skipping creating cabinet data path because it already exists")
+		} else {
+			return err
+		}
+	}
+
+	err = chownToCabinet("/usr/local/share/CabinetData/tmpls")
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -112,6 +147,19 @@ func copyCabinetBinary() error {
 		return err
 	}
 
+	// sorry for putting this here instead of its own function future me
+	destFilePath = "/usr/local/share/CabinetData/tmpls/main.html"
+
+	err = copyFile("./tmpls/main.html", destFilePath)
+	if err != nil {
+		return err
+	}
+
+	err = chownToCabinet(destFilePath)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -137,6 +185,12 @@ func Setup() {
 	err = makeCabinetDirectory()
 	if err != nil {
 		Logger.Fatal("when adding CabinetDirectory: %s", err.Error())
+	}
+
+	Logger.Info("making tmpls directory at /usr/local/share/CabinetData/tmpls")
+	err = makeCabinetDataDirectory()
+	if err != nil {
+		Logger.Fatal("when making the tmpls directory: %s", err.Error())
 	}
 
 	Logger.Info("copying ./cabinet to /usr/local/bin/cabinet")
