@@ -8,6 +8,8 @@ Type=exec
 User=cabinet
 Group=cabinet
 ExecStart=/usr/local/bin/cabinet
+StandardError=journal
+StandardOutput=journal
 
 [Install]
 WantedBy=multi-user.target
