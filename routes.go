@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 )
@@ -11,11 +12,49 @@ const CABINETLOCATION = "/usr/local/share/Cabinet/"
 func EntryNotAllowed(response http.ResponseWriter, request *http.Request) {
 	_ = request
 
+	// TODO: 403
 	response.Write([]byte("entry not allowed"))
+}
+
+func getPasscodeCookie(r *http.Request) (http.Cookie, error) {
+	cookie, err := r.Cookie("passcode")
+	if err != nil {
+		return http.Cookie{}, err
+	}
+	return *cookie, nil
+}
+
+func whatsThePasscode(response http.ResponseWriter, request *http.Request) error {
+	// TODO: passcode template
+	_ = request
+
+	response.Write([]byte("oi what's the passcode"))
+
+	return nil
 }
 
 func FrontDoor(response http.ResponseWriter, request *http.Request) {
 	Logger.Info("Knocking at the front door")
+
+	cookie, err := getPasscodeCookie(request)
+	if err != nil {
+		switch {
+		case errors.Is(err, http.ErrNoCookie):
+			err = whatsThePasscode(response, request)
+			if err != nil {
+				Logger.Fatal("%s", err.Error())
+			}
+			return
+		default:
+			Logger.Error("when trying to get cookie: %s", err)
+			// TODO: 500
+		}
+
+		EntryNotAllowed(response, request)
+		return
+	}
+	Logger.Debug("%+v", cookie)
+
 	queryValues, err := url.ParseQuery(request.URL.RawQuery)
 	if err != nil {
 		Logger.Fatal("bummer: %s", err)
@@ -40,6 +79,7 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 	} else {
 		Logger.Info("denying entry")
 		EntryNotAllowed(response, request)
+		return
 	}
 }
 
