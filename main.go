@@ -16,7 +16,7 @@ func init() {
 }
 
 func main() {
-	version := "v0.2.0"
+	version := "v0.2.1"
 
 	flag.Parse()
 	if HelpFlag {
