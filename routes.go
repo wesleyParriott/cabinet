@@ -25,10 +25,15 @@ func getPasscodeCookie(r *http.Request) (http.Cookie, error) {
 }
 
 func whatsThePasscode(response http.ResponseWriter, request *http.Request) error {
-	// TODO: passcode template
-	_ = request
 
-	response.Write([]byte("oi what's the passcode"))
+	Logger.Debug("%s", request.RequestURI)
+
+	contents, err := ParsePasscodeTemplate(request.RequestURI)
+	if err != nil {
+		Logger.Fatal("%s", err.Error())
+	}
+
+	response.Write([]byte(contents))
 
 	return nil
 }
@@ -59,28 +64,18 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		Logger.Fatal("bummer: %s", err)
 	}
+
 	Logger.Info("%v", queryValues)
-	secrets, okay := queryValues["password"]
-	if !okay {
-		Logger.Info("no password parameter. Entry not allowed")
-		EntryNotAllowed(response, request)
-		return
-	}
+
 	whichdir, okay := queryValues["whichdir"]
 	if !okay {
 		Logger.Info("no whichdir parameter. Entry not allowed")
-		EntryNotAllowed(response, request)
+		List(response, request, "")
 		return
 	}
-	Logger.Info("found secret password")
-	if secrets[0] == IMTHEWORST {
-		Logger.Info("letting them in")
-		List(response, request, whichdir[0])
-	} else {
-		Logger.Info("denying entry")
-		EntryNotAllowed(response, request)
-		return
-	}
+
+	Logger.Info("letting them in")
+	List(response, request, whichdir[0])
 }
 
 func List(response http.ResponseWriter, request *http.Request, whichdir string) {
@@ -91,7 +86,7 @@ func List(response http.ResponseWriter, request *http.Request, whichdir string) 
 		Logger.Error("err when listing files: %s", err)
 	}
 
-	content, err := ParseMainTemplate(whichdir, fileNames)
+	content, err := ParseListTemplate(whichdir, fileNames)
 	if err != nil {
 		Logger.Fatal("error when parsing template: %s", err)
 	}
