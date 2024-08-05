@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 const IMTHEWORST = "dcc970833371548d5c08360d9c35bcebc1afde0a923d13e994b4f9122043233306f0dbf1ce1227de37b9921385fd8370bb75bd47ba1934a190d278f44032285b"
@@ -62,15 +63,21 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 
 	queryValues, err := url.ParseQuery(request.URL.RawQuery)
 	if err != nil {
-		Logger.Fatal("bummer: %s", err)
+		Logger.Fatal("when getting query values: %s", err.Error())
 	}
 
 	Logger.Info("%v", queryValues)
 
 	whichdir, okay := queryValues["whichdir"]
 	if !okay {
-		Logger.Info("no whichdir parameter. Entry not allowed")
-		List(response, request, "")
+		Logger.Info("no whichdir parameter. Redirecting them to the index.")
+		Index(response, request)
+		return
+	}
+
+	if strings.Contains(whichdir[0], "..") {
+		Logger.Info("which dir contains ..! can't go backwards :(")
+		Index(response, request)
 		return
 	}
 
@@ -78,7 +85,23 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 	List(response, request, whichdir[0])
 }
 
+func Index(response http.ResponseWriter, request *http.Request) {
+
+	if request.RequestURI != "/" {
+		http.Redirect(response, request, "/", 301)
+	}
+
+	index, err := ParseIndexTemplate()
+	if err != nil {
+		Logger.Fatal("when parsing index template: %s", err.Error())
+	}
+
+	response.Write([]byte(index))
+}
+
 func List(response http.ResponseWriter, request *http.Request, whichdir string) {
+	Logger.Info("Listing files in %s", whichdir)
+
 	_ = request
 
 	fileNames, err := listDir("/usr/local/share/Cabinet/" + whichdir)

@@ -8,6 +8,26 @@ import (
 
 const TemplateFolder = "./tmpls/"
 
+func ParseIndexTemplate() (string, error) {
+	indexFileContents, err := os.ReadFile(TemplateFolder + "index.html")
+	if err != nil {
+		return "", err
+	}
+
+	tmpl, err := template.New("index").Parse(string(indexFileContents))
+	if err != nil {
+		return "", err
+	}
+
+	var buff bytes.Buffer
+	err = tmpl.Execute(&buff, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return parseMainTemplate("Index", buff.String())
+
+}
 func ParseListTemplate(whichdir string, paths []string) (string, error) {
 	type Info struct {
 		Whichdir string
