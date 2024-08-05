@@ -13,14 +13,7 @@
 </head>
 <body>
     <main class="container-fluid">
-        {{ $whichdir := .Whichdir }}
-        {{ if .Paths }} 
-            {{ range $path := .Paths }} 
-            <a href="/slopmeup?soup={{$whichdir}}/{{$path}}" >{{$path}}</a>
-            {{ end }}
-        {{ else }} 
-            <b>no files found</b>
-        {{ end }}
+        {{ .MainContent }}
     </main>
 </body>
 </html>

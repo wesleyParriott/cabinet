@@ -1,0 +1,21 @@
+<form id="passcode_form" action=" {{ .Route }} ">
+  <fieldset>
+    <label>
+      Passcode
+      <input id="passcode_input" />
+    </label>
+  </fieldset>
+
+  <input id="passcode_button" type="submit" value="Enter" />
+</form>
+<script>
+    window.onload = function(event) {
+        let passcodeForm = document.getElementById("passcode_form");
+        let passcodeInput = document.getElementById("passcode_input");
+        let passcodeButton = document.getElementById("passcode_button");
+        passcodeForm.onsubmit = function() {
+            let potentialPasscode = passcodeInput.value;
+            document.cookie="passcode=" + potentialPasscode;
+        }
+    }
+</script>

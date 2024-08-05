@@ -1,0 +1,8 @@
+{{ $whichdir := .Whichdir }}
+{{ if .Paths }} 
+    {{ range $path := .Paths }} 
+    <a href="/slopmeup?soup={{$whichdir}}/{{$path}}" >{{$path}}</a>
+    {{ end }}
+{{ else }} 
+    <b>no files found</b>
+{{ end }}

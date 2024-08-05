@@ -8,17 +8,76 @@ import (
 
 const TemplateFolder = "./tmpls/"
 
-func ParseMainTemplate(whichdir string, paths []string) (string, error) {
-	type mainInfo struct {
-		Title    string
+func ParseListTemplate(whichdir string, paths []string) (string, error) {
+	type Info struct {
 		Whichdir string
 		Paths    []string
 	}
 
-	main := mainInfo{
-		"Cabinet",
+	info := Info{
 		whichdir,
 		paths,
+	}
+
+	listFileContents, err := os.ReadFile(TemplateFolder + "list.html")
+	if err != nil {
+		return "", err
+	}
+
+	tmpl, err := template.New("list").Parse(string(listFileContents))
+	if err != nil {
+		return "", err
+	}
+
+	var buff bytes.Buffer
+	err = tmpl.Execute(&buff, info)
+	if err != nil {
+		return "", err
+	}
+
+	return parseMainTemplate(whichdir, buff.String())
+}
+
+func ParsePasscodeTemplate(route string) (string, error) {
+
+	Logger.Debug("route passed to ParsePasscodeTemplate: %s", route)
+
+	type Info struct {
+		Route string
+	}
+
+	info := Info{
+		route,
+	}
+
+	passcodeFileContents, err := os.ReadFile(TemplateFolder + "passcode.html")
+	if err != nil {
+		return "", err
+	}
+
+	tmpl, err := template.New("list").Parse(string(passcodeFileContents))
+	if err != nil {
+		return "", err
+	}
+
+	var buff bytes.Buffer
+	err = tmpl.Execute(&buff, info)
+	if err != nil {
+		return "", err
+	}
+
+	return parseMainTemplate("Passcode", buff.String())
+}
+
+func parseMainTemplate(title string, maincontent string) (string, error) {
+	type mainInfo struct {
+		Title       string
+		MainContent string
+	}
+
+	main := mainInfo{
+		"Cabinet | " + title,
+		maincontent,
 	}
 
 	mainFileContents, err := os.ReadFile(TemplateFolder + "main.html")
