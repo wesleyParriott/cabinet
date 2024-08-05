@@ -38,7 +38,6 @@ func main() {
 
 	port := ":3000"
 	http.HandleFunc("/", FrontDoor)
-	http.HandleFunc("/slopmeup", SlopMeUp)
 	Logger.Info("Listening and Serving on %s ...", port)
 	err := http.ListenAndServe(port, nil)
 	if err != nil {
