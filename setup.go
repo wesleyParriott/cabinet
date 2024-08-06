@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-	"strconv"
 )
 
 func run(name string, arg ...string) error {
@@ -41,27 +40,7 @@ func addCabinetUser() error {
 }
 
 func chownToCabinet(path string) error {
-	usr, err := user.Lookup("cabinet")
-	if err != nil {
-		return err
-	}
-
-	uid, err := strconv.Atoi(usr.Uid)
-	if err != nil {
-		return err
-	}
-
-	gid, err := strconv.Atoi(usr.Gid)
-	if err != nil {
-		return err
-	}
-
-	err = os.Chown(path, uid, gid)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return chown("cabinet", "cabinet", path)
 }
 
 func makeCabinetDirectory() error {
@@ -111,25 +90,17 @@ func makeCabinetDataDirectory() error {
 		return err
 	}
 
-	return nil
-}
-
-func copyFile(currentFilePath string, destFilePath string) error {
-	destFile, err := os.OpenFile(destFilePath, os.O_RDWR|os.O_CREATE, 0750)
-	if err != nil {
-		return err
+	// list every file in ./tmpls
+	fileNames, err := listDir("./tmpls")
+	for _, fileName := range fileNames {
+		Logger.Debug("copying %s", fileName)
+		filePath := "./tmpls/" + fileName
+		destFilePath := "/usr/local/share/CabinetData/tmpls/" + fileName
+		err = copyFile(filePath, destFilePath)
+		if err != nil {
+			return err
+		}
 	}
-
-	currentFileBytes, err := os.ReadFile(currentFilePath)
-	if err != nil {
-		return err
-	}
-
-	totalWrite, err := destFile.Write(currentFileBytes)
-	if err != nil {
-		return err
-	}
-	Logger.Debug("Wrote %d bytes", totalWrite)
 
 	return nil
 }
@@ -138,19 +109,6 @@ func copyCabinetBinary() error {
 	destFilePath := "/usr/local/bin/cabinet"
 
 	err := copyFile("./cabinet", destFilePath)
-	if err != nil {
-		return err
-	}
-
-	err = chownToCabinet(destFilePath)
-	if err != nil {
-		return err
-	}
-
-	// sorry for putting this here instead of its own function future me
-	destFilePath = "/usr/local/share/CabinetData/tmpls/main.html"
-
-	err = copyFile("./tmpls/main.html", destFilePath)
 	if err != nil {
 		return err
 	}
@@ -187,7 +145,7 @@ func Setup() {
 		Logger.Fatal("when adding CabinetDirectory: %s", err.Error())
 	}
 
-	Logger.Info("making tmpls directory at /usr/local/share/CabinetData/tmpls")
+	Logger.Info("making tmpls directory at /usr/local/share/CabinetData/tmpls based on ./tmpls")
 	err = makeCabinetDataDirectory()
 	if err != nil {
 		Logger.Fatal("when making the tmpls directory: %s", err.Error())
@@ -201,6 +159,12 @@ func Setup() {
 
 	Logger.Info("copying ./setup/cabinet.service to /etc/systemd/system")
 	err = copyFile("./setup/cabinet.service", "/etc/systemd/system/cabinet.service")
+	if err != nil {
+		Logger.Fatal("when copying service file: %s", err.Error())
+	}
+
+	Logger.Info("copying ./setup/favicon to /usr/local/share/CabinetData/favicon.ico")
+	err = copyFile("./setup/favicon.ico", "/usr/local/share/CabinetData/favicon.ico")
 	if err != nil {
 		Logger.Fatal("when copying service file: %s", err.Error())
 	}
