@@ -1,4 +1,5 @@
-<form id="passcode_form" action=" {{ .Route }} ">
+<form id="passcode_form" action="">
+  <image src="passcode.jpg" alt="blood borne reference where you select the password to enter the forbidden forest">
   <fieldset>
     <label>
       Passcode
@@ -13,9 +14,11 @@
         let passcodeForm = document.getElementById("passcode_form");
         let passcodeInput = document.getElementById("passcode_input");
         let passcodeButton = document.getElementById("passcode_button");
-        passcodeForm.onsubmit = function() {
+        passcodeForm.onsubmit = function(e) {
+            e.preventDefault();
             let potentialPasscode = passcodeInput.value;
             document.cookie="passcode=" + potentialPasscode;
+            window.location = "{{ .Route }}";
         }
     }
 </script>

@@ -163,10 +163,24 @@ func Setup() {
 		Logger.Fatal("when copying service file: %s", err.Error())
 	}
 
-	Logger.Info("copying ./setup/favicon to /usr/local/share/CabinetData/favicon.ico")
+	Logger.Info("copying ./setup/favicon.ico to /usr/local/share/CabinetData/favicon.ico")
 	err = copyFile("./setup/favicon.ico", "/usr/local/share/CabinetData/favicon.ico")
 	if err != nil {
-		Logger.Fatal("when copying service file: %s", err.Error())
+		Logger.Fatal("when copying favicon: %s", err.Error())
+	}
+	err = chown("cabinet", "cabinet", "/usr/local/share/CabinetData/favicon.ico")
+	if err != nil {
+		Logger.Fatal("when chowning favicon: %s", err.Error())
+	}
+
+	Logger.Info("copying ./setup/passcode.jpg to /usr/local/share/CabinetData/passcode.jpg")
+	err = copyFile("./setup/favicon.ico", "/usr/local/share/CabinetData/favicon.ico")
+	if err != nil {
+		Logger.Fatal("when copying passcode jpg: %s", err.Error())
+	}
+	err = chown("cabinet", "cabinet", "/usr/local/share/CabinetData/passcode.jpg")
+	if err != nil {
+		Logger.Fatal("when chowning passcode jpg: %s", err.Error())
 	}
 
 	Logger.Info("enabling cabinet service with systemd")

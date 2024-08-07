@@ -54,6 +54,12 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	if request.RequestURI == "/passcode.jpg" {
+		Logger.Info("serving passcode jpg")
+		http.ServeFile(response, request, "/usr/local/share/CabinetData/passcode.jpg")
+		return
+	}
+
 	cookie, err := getPasscodeCookie(request)
 	if err != nil {
 		switch {
@@ -78,7 +84,7 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 		EntryNotAllowed(response, request)
 		return
 	}
-	Logger.Debug("%+v", cookie)
+	Logger.Debug("cookie: %+v", cookie)
 
 	queryValues, err := url.ParseQuery(request.URL.RawQuery)
 	if err != nil {
@@ -86,7 +92,7 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 		// FIXME: 500
 	}
 
-	Logger.Info("%v", queryValues)
+	Logger.Debug("query values: %v", queryValues)
 
 	if strings.ToLower(request.URL.Path) == "/slopmeup" {
 		SlopMeUp(response, request)
@@ -107,6 +113,7 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 	}
 
 	Logger.Info("letting them in")
+
 	List(response, request, whichdir[0])
 }
 
