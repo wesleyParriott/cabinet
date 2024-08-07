@@ -1,7 +1,7 @@
 {{ $whichdir := .Whichdir }}
 {{ if .Paths }} 
     {{ range $path := .Paths }} 
-    <a href="/slopmeup?soup={{$whichdir}}%2F{{$path}}" >{{$path}}</a>
+    <a href="/slopmeup?soup={{$whichdir}}%2F{{$path}}" download="{{$path}}" >{{$path}}</a>
     {{ end }}
 {{ else }} 
     <b>no files found</b>
