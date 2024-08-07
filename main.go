@@ -8,11 +8,16 @@ import (
 	"github.com/wesleyParriott/wlog"
 )
 
+var PASSCODE string
 var Logger wlog.Wlog
 
 func init() {
 	initFlags()
 	Logger = wlog.CreateWlogWithParams(os.Stdout, wlog.DEBUG)
+	err := setPasscode()
+	if err != nil {
+		Logger.Fatal("during init couldn't set passcode because: %s", err)
+	}
 }
 
 func main() {

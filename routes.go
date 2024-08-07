@@ -8,6 +8,7 @@ import (
 )
 
 const IMTHEWORST = "dcc970833371548d5c08360d9c35bcebc1afde0a923d13e994b4f9122043233306f0dbf1ce1227de37b9921385fd8370bb75bd47ba1934a190d278f44032285b"
+
 const CABINETLOCATION = "/usr/local/share/Cabinet/"
 
 // EntryNotAllowed will write a 200 with the text "entry not allowed"
@@ -68,6 +69,12 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 			// FIXME: 500
 		}
 
+		EntryNotAllowed(response, request)
+		return
+	}
+	passcode := cookie.Value
+	if passcode != PASSCODE {
+		Logger.Info("passcode incorrect")
 		EntryNotAllowed(response, request)
 		return
 	}
