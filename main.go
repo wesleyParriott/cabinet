@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"net/http"
 	"os"
 
@@ -13,7 +12,26 @@ var Logger wlog.Wlog
 
 func init() {
 	initFlags()
-	Logger = wlog.CreateWlogWithParams(os.Stdout, wlog.DEBUG)
+
+	var logLevel int
+
+	if LogLevel == "debug" {
+		// the default of the flag
+		// so if they don't set anything it should go here
+		logLevel = wlog.DEBUG
+	} else if LogLevel == "info" {
+		logLevel = wlog.INFO
+	} else if LogLevel == "error" {
+		logLevel = wlog.ERROR
+	} else if LogLevel == "fatal" {
+		logLevel = wlog.FATAL
+	} else {
+		println("Sorry didn't recognize " + LogLevel + " as a log level. Please use these:")
+		println("\tdebug, info, error, or fatal")
+		os.Exit(0)
+	}
+
+	Logger = wlog.CreateWlogWithParams(os.Stdout, logLevel)
 	err := setPasscode()
 	if err != nil {
 		Logger.Fatal("during init couldn't set passcode because: %s", err)
@@ -23,7 +41,6 @@ func init() {
 func main() {
 	version := "v0.2.1"
 
-	flag.Parse()
 	if HelpFlag {
 		PrintUsage()
 	}
