@@ -39,7 +39,7 @@ func init() {
 }
 
 func main() {
-	version := "v0.2.1"
+	version := "v0.3.0"
 
 	if HelpFlag {
 		PrintUsage()
