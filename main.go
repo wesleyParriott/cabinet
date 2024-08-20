@@ -7,8 +7,14 @@ import (
 	"github.com/wesleyParriott/wlog"
 )
 
-var PASSCODE string
-var Logger wlog.Wlog
+// FIXME: Globals maybe need to get passsed to functions or setup in a state struct or maybe is okay and who cares
+const CABINETLOCATION = "/usr/local/share/Cabinet/"
+
+// FIXME: Globals maybe need to get passsed to functions or setup in a state struct or maybe is okay and who cares
+var (
+	PASSCODE string
+	Logger   wlog.Wlog
+)
 
 func init() {
 	initFlags()
@@ -32,9 +38,12 @@ func init() {
 	}
 
 	Logger = wlog.CreateWlogWithParams(os.Stdout, logLevel)
-	err := setPasscode()
-	if err != nil {
-		Logger.Fatal("during init couldn't set passcode because: %s", err)
+
+	if !PublicFlag {
+		err := setPasscode()
+		if err != nil {
+			Logger.Fatal("during init couldn't set passcode because: %s", err)
+		}
 	}
 }
 

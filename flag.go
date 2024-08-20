@@ -5,12 +5,15 @@ import (
 	"os"
 )
 
+// FIXME: Globals maybe need to get passsed to functions or setup in a state struct or maybe is okay and who cares
 var (
 	BreakdownFlag bool
 	HelpFlag      bool
+	PublicFlag    bool
 	SetupFlag     bool
 	VersionFlag   bool
-	LogLevel      string
+
+	LogLevel string
 )
 
 func PrintUsage() {
@@ -24,6 +27,9 @@ func initFlags() {
 
 	flag.BoolVar(&HelpFlag, "h", false, "prints this helpful message")
 	flag.BoolVar(&HelpFlag, "help", false, "prints this helpful message")
+
+	flag.BoolVar(&PublicFlag, "p", false, "runs as public. Meaning no passcode entry when trying to hit the site")
+	flag.BoolVar(&PublicFlag, "public", false, "runs as public. Meaning no passcode entry when trying to hit the site")
 
 	flag.BoolVar(&SetupFlag, "s", false, "sets up daemon")
 	flag.BoolVar(&SetupFlag, "setup", false, "sets up daemon")

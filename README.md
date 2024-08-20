@@ -8,6 +8,7 @@ run the following
 ```
 go build && \
 
+# will ask for a passcode to create
 # creates a cabinet user and group
 # creates a directory at /usr/local/share/Cabinet (owned by cabinet:cabinet)
 # copies the cabinet binary to /usr/bin/cabinet
@@ -16,8 +17,18 @@ go build && \
 sudo ./cabinet -s
 ```
 
+### If you want to start it right away
+```
+sudo systemctl start cabinet
+```
+
 Then I suggest you use something like caddy, nginx, or apache to proxy to it. If you want help with that I'll be around.
 You can find me at @vvesley.bsky.social
+
+### If you want to watch the logs you can just use journalctl because we log to stdout
+```
+sudo journalctl -fu cabinet
+```
 
 ## How does it work 
 

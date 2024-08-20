@@ -7,10 +7,6 @@ import (
 	"strings"
 )
 
-const IMTHEWORST = "dcc970833371548d5c08360d9c35bcebc1afde0a923d13e994b4f9122043233306f0dbf1ce1227de37b9921385fd8370bb75bd47ba1934a190d278f44032285b"
-
-const CABINETLOCATION = "/usr/local/share/Cabinet/"
-
 // EntryNotAllowed will write a 200 with the text "entry not allowed"
 // 200 is used here because laziness
 // FIXME use 403
@@ -30,7 +26,8 @@ func getPasscodeCookie(r *http.Request) (http.Cookie, error) {
 
 func whatsThePasscode(response http.ResponseWriter, request *http.Request) error {
 
-	Logger.Debug("%s", request.RequestURI)
+	Logger.Info("asking for the passcode")
+	Logger.Debug("request uri: %s", request.RequestURI)
 
 	contents, err := ParsePasscodeTemplate(request.RequestURI)
 	if err != nil {
@@ -60,31 +57,39 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	cookie, err := getPasscodeCookie(request)
-	if err != nil {
-		switch {
-		case errors.Is(err, http.ErrNoCookie):
-			err = whatsThePasscode(response, request)
-			if err != nil {
-				Logger.Fatal("%s", err.Error())
+	if PublicFlag == false {
+		Logger.Info("seeing if there's a passcode already")
+		cookie, err := getPasscodeCookie(request)
+		if err != nil {
+			switch {
+			case errors.Is(err, http.ErrNoCookie):
+				err = whatsThePasscode(response, request)
+				if err != nil {
+					Logger.Fatal("%s", err.Error())
+					// FIXME: 500
+				}
+				return
+			default:
+				Logger.Error("when trying to get cookie: %s", err)
 				// FIXME: 500
 			}
+
+			EntryNotAllowed(response, request)
 			return
-		default:
-			Logger.Error("when trying to get cookie: %s", err)
-			// FIXME: 500
 		}
 
-		EntryNotAllowed(response, request)
-		return
+		Logger.Info("checking the passcode")
+
+		passcode := cookie.Value
+		if passcode != PASSCODE {
+			Logger.Info("passcode incorrect sending them away")
+			EntryNotAllowed(response, request)
+			return
+		}
+
+		Logger.Info("passcode correct sending them in")
+		Logger.Debug("cookie: %+v", cookie)
 	}
-	passcode := cookie.Value
-	if passcode != PASSCODE {
-		Logger.Info("passcode incorrect")
-		EntryNotAllowed(response, request)
-		return
-	}
-	Logger.Debug("cookie: %+v", cookie)
 
 	queryValues, err := url.ParseQuery(request.URL.RawQuery)
 	if err != nil {
