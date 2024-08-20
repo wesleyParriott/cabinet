@@ -1,5 +1,7 @@
 {{ $whichdir := .Whichdir }}
 
+<button id="download_all_button">Download All</button>
+<article id="items" style="max-height:30rem" class="overflow-auto">
 {{ if .Paths }} 
     {{ range $path := .Paths }} 
     <div> 
@@ -9,4 +11,16 @@
 {{ else }} 
     <b>no files found</b>
 {{ end }}
-
+</article>
+<script>
+    window.onload = function() {
+        var downloadAllButton = document.getElementById("download_all_button");
+        downloadAllButton.onclick = function() {
+            var as = document.getElementsByTagName("a");
+            for (i=0;i<as.length;i++) {
+                var a = as[i];
+                a.click();
+            }
+        }
+    }
+</script>
