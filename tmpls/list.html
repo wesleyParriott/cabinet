@@ -1,6 +1,18 @@
 {{ $whichdir := .Whichdir }}
 
 <button id="download_all_button">Download All</button>
+
+<button id="upload_dialog_open_button">+</button>
+<dialog id="upload_dialog" close>
+    <article>
+        <button id="upload_dialog_close_button">x</button>
+        <form id="upload_form" method="POST">
+            <input type="file" name="file" />
+            <button type="submit">submit</button>
+        </form>
+    </article>
+</dialog>
+
 <article id="items" style="max-height:30rem" class="overflow-auto">
 {{ if .Paths }} 
     {{ range $path := .Paths }} 
@@ -22,5 +34,44 @@
                 a.click();
             }
         }
+
+        var uploadDialogOpenButton = document.getElementById("upload_dialog_open_button");
+        var uploadDialogCloseButton = document.getElementById("upload_dialog_close_button");
+        var uploadForm = document.getElementById("upload_form");
+
+        uploadDialogOpenButton.onclick = function() {
+            var uploadDialog=document.getElementById("upload_dialog");
+            uploadDialog.open = true;
+        }
+
+        uploadDialogCloseButton.onclick = function() {
+            var uploadDialog=document.getElementById("upload_dialog");
+            uploadDialog.open = false;
+        }
+
+        uploadForm.onsubmit = async function(e) {
+            e.preventDefault();
+            var urlParameters = new URLSearchParams(window.location.search);
+            var destination = urlParameters.get('whichdir');
+            var form = e.currentTarget;
+            var url = "/upload";
+            try {
+
+                var formData = new FormData(form);
+
+                var response = await fetch(url, {
+                    headers: {
+                        "x-destination": destination
+                    },
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log(response);
+            } catch(error) {
+                console.log(error);
+            }
+        }
+
     }
 </script>

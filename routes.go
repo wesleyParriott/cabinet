@@ -2,8 +2,11 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 )
 
@@ -102,6 +105,14 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 	if strings.ToLower(request.URL.Path) == "/slopmeup" {
 		SlopMeUp(response, request)
 		return
+	} else if strings.ToLower(request.URL.Path) == "/upload" {
+		if request.Method != "POST" {
+			Logger.Error("Wrong Method: %s", request.Method)
+			BadRequest(response)
+			return
+		}
+		Upload(response, request)
+		return
 	}
 
 	whichdir, okay := queryValues["whichdir"]
@@ -156,7 +167,7 @@ func List(response http.ResponseWriter, request *http.Request, whichdir string) 
 		// FIXME: 500
 	}
 
-	response.Write([]byte(content))
+	Okay(response, []byte(content))
 }
 
 // SlopMeUp is a route that will serve a file based on the soup query parameter
@@ -180,4 +191,60 @@ func SlopMeUp(response http.ResponseWriter, request *http.Request) {
 	path := CABINETLOCATION + soup
 	Logger.Debug("path  " + path)
 	http.ServeFile(response, request, path)
+}
+
+func Upload(response http.ResponseWriter, request *http.Request) {
+	Logger.Info("Entering upload route")
+
+	destination := request.Header.Get("X-Destination")
+	Logger.Info("File Destination: %s", destination)
+
+	maxUploadSize := int64(1024 * 1024 * 1024 * 1024)
+
+	err := request.ParseMultipartForm(maxUploadSize)
+	if err != nil {
+		Logger.Error("when trying to parse multipart form: %s", err.Error())
+		InternalError(response)
+		return
+	}
+
+	files := request.MultipartForm.File["file"]
+
+	for _, fileHeader := range files {
+		Logger.Debug("FILE HEADER INFO\n\tFile Name: %s\n\t File Size: %d", fileHeader.Filename, fileHeader.Size)
+
+		if fileHeader.Size > maxUploadSize {
+			Logger.Error("%s too big", fileHeader.Filename)
+			EntityTooLarge(response)
+			return
+		}
+
+		filePath := fmt.Sprintf("%s/%s/%s", CABINETLOCATION, destination, fileHeader.Filename)
+
+		givenFile, err := fileHeader.Open()
+		if err != nil {
+			Logger.Error("when trying to open fileHeader: %s", fileHeader.Filename)
+			InternalError(response)
+			return
+		}
+
+		Logger.Info("writing file to %s", filePath)
+		f, err := os.Create(filePath)
+		if err != nil {
+			Logger.Error(err.Error())
+			InternalError(response)
+			return
+		}
+		defer f.Close()
+
+		_, err = io.Copy(f, givenFile)
+		if err != nil {
+			Logger.Error(err.Error())
+			InternalError(response)
+			return
+		}
+
+	}
+
+	Okay(response, []byte("got it"))
 }
