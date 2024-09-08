@@ -8,7 +8,7 @@
         <button id="upload_dialog_close_button">x</button>
         <form id="upload_form" method="POST">
             <input id="upload_file_input" type="file" name="file"/>
-            <button type="submit">submit</button>
+            <button type="submit" id="upload_file_submit_button" aria-busy="false">submit</button>
         </form>
     </article>
 </dialog>
@@ -52,6 +52,9 @@
         uploadForm.onsubmit = async function(e) {
             e.preventDefault();
 
+            var uploadFileSubmitButton = document.getElementById("upload_file_submit_button");
+            uploadFileSubmitButton.ariaBusy = "true"
+
             var uploadFileInput = document.getElementById("upload_file_input");
             var file = uploadFileInput.files[0];
 
@@ -93,28 +96,9 @@
                 return
             }
 
-            // var urlParameters = new URLSearchParams(window.location.search);
-            // var destination = urlParameters.get('whichdir');
-            // var form = e.currentTarget;
-            // var url = "/upload";
-            // try {
-
-            //     var formData = new FormData(form);
-
-            //     console.log(formData);
-
-            //     var response = await fetch(url, {
-            //         headers: {
-            //             "x-destination": destination
-            //         },
-            //         method: 'POST',
-            //         body: formData
-            //     });
-
-            //     console.log(response);
-            // } catch(error) {
-            //     console.log(error);
-            // }
+            uploadFileSubmitButton.ariaBusy = "false"
+            
+            location.reload();
         }
 
     }
