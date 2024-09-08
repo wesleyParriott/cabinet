@@ -1,2 +1,6 @@
+facette.io/natsort v0.0.0-20181210072756-2cd4dd1e2dcb h1:1pSweJFeR3Pqx7uoelppkzeegfUBXL6I2FFAbfXw570=
+facette.io/natsort v0.0.0-20181210072756-2cd4dd1e2dcb/go.mod h1:npRYmtaITVom7rcSo+pRURltHSG2r4TQM1cdqJ2dUB0=
+github.com/facette/natsort v0.0.0-20181210072756-2cd4dd1e2dcb h1:IT4JYU7k4ikYg1SCxNI1/Tieq/NFvh6dzLdgi7eu0tM=
+github.com/facette/natsort v0.0.0-20181210072756-2cd4dd1e2dcb/go.mod h1:bH6Xx7IW64qjjJq8M2u4dxNaBiDfKK+z/3eGDpXEQhc=
 github.com/wesleyParriott/wlog v0.0.0-20240721204245-2a63c029605b h1:YJm4mk5KGrp9iFcdToHaWQuH+c2DNL8uE51uwBQ/q5A=
 github.com/wesleyParriott/wlog v0.0.0-20240721204245-2a63c029605b/go.mod h1:Zt6/rqY+bhUFELMW8dKxCDCcQdcggz4gd/eWspQ3A5U=

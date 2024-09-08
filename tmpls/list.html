@@ -7,7 +7,7 @@
     <article>
         <button id="upload_dialog_close_button">x</button>
         <form id="upload_form" method="POST">
-            <input type="file" name="file" />
+            <input id="upload_file_input" type="file" name="file"/>
             <button type="submit">submit</button>
         </form>
     </article>
@@ -51,26 +51,70 @@
 
         uploadForm.onsubmit = async function(e) {
             e.preventDefault();
+
+            var uploadFileInput = document.getElementById("upload_file_input");
+            var file = uploadFileInput.files[0];
+
+            var size = file.size;
+            var nominalChunkSize = 100*1024*1024; // 100 mb
+            var howManyChunks = Math.ceil(size/nominalChunkSize);
+            console.log(file);
+            console.log("size: ", size, "how many chunks: ", howManyChunks);
+
+            var route = "/upload?";
             var urlParameters = new URLSearchParams(window.location.search);
-            var destination = urlParameters.get('whichdir');
-            var form = e.currentTarget;
-            var url = "/upload";
-            try {
+            var whichdir = urlParameters.get('whichdir');
+            var filename = file.name;
 
-                var formData = new FormData(form);
-
-                var response = await fetch(url, {
-                    headers: {
-                        "x-destination": destination
-                    },
-                    method: 'POST',
-                    body: formData
-                });
-
-                console.log(response);
-            } catch(error) {
-                console.log(error);
+            for(let i=0; i<howManyChunks; i++) {
+                var uri = route + "part=" + i + "&whichdir=" + whichdir + "&filename=" + filename;
+                console.log(uri);
+                console.log(encodeURI(uri));
+                var start=i*nominalChunkSize;
+                var end=(i+1)*nominalChunkSize;
+                var s = file.slice(start,end);
+                console.log(s);
+                try {
+                    var response = await fetch(uri, {
+                        method: 'POST',
+                        body: s
+                    });
+                } catch (err) {
+                    console.log(err);
+                    return
+                }
             }
+
+            var uri = "/stitch?whichdir=" + whichdir + "&whichfile=" + filename;
+            try {
+                var response = await fetch(uri, { method: 'POST' });
+            } catch (err) {
+                console.log(err);
+                return
+            }
+
+            // var urlParameters = new URLSearchParams(window.location.search);
+            // var destination = urlParameters.get('whichdir');
+            // var form = e.currentTarget;
+            // var url = "/upload";
+            // try {
+
+            //     var formData = new FormData(form);
+
+            //     console.log(formData);
+
+            //     var response = await fetch(url, {
+            //         headers: {
+            //             "x-destination": destination
+            //         },
+            //         method: 'POST',
+            //         body: formData
+            //     });
+
+            //     console.log(response);
+            // } catch(error) {
+            //     console.log(error);
+            // }
         }
 
     }

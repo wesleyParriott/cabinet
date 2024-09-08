@@ -23,3 +23,7 @@ func EntityTooLarge(response http.ResponseWriter) {
 func InternalError(response http.ResponseWriter) {
 	http.Error(response, http.StatusText(500), 500)
 }
+
+func NotImplemented(response http.ResponseWriter) {
+	http.Error(response, http.StatusText(501), 501)
+}
