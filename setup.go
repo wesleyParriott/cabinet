@@ -44,7 +44,7 @@ func chownToCabinet(path string) error {
 }
 
 func makeCabinetDirectory() error {
-	err := os.Mkdir("/usr/local/share/Cabinet", 0750)
+	err := os.Mkdir("/usr/local/share/Cabinet", 0644)
 	if err != nil {
 		if os.IsExist(err) {
 			Logger.Info("skipping creating cabinet path because it already exists")
@@ -62,7 +62,7 @@ func makeCabinetDirectory() error {
 }
 
 func makeCabinetDataDirectory() error {
-	err := os.Mkdir("/usr/local/share/CabinetData/", 0750)
+	err := os.Mkdir("/usr/local/share/CabinetData/", 0644)
 	if err != nil {
 		if os.IsExist(err) {
 			Logger.Info("skipping creating cabinet data path because it already exists")
@@ -76,7 +76,7 @@ func makeCabinetDataDirectory() error {
 		return err
 	}
 
-	err = os.Mkdir("/usr/local/share/CabinetData/tmpls", 0750)
+	err = os.Mkdir("/usr/local/share/CabinetData/tmpls", 0644)
 	if err != nil {
 		if os.IsExist(err) {
 			Logger.Info("skipping creating cabinet data path because it already exists")
