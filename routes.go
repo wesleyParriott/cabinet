@@ -242,7 +242,7 @@ func Upload(response http.ResponseWriter, request *http.Request) {
 	// then we save the body to a file named part-whichdir-filename in /tmp
 	fileNameToSave := fmt.Sprintf("%s-%s", part[0], filename[0])
 	Logger.Debug("%s", fileNameToSave)
-	err = os.WriteFile("/tmp/"+fileNameToSave, contents, 0644)
+	err = os.WriteFile("/tmp/"+fileNameToSave, contents, 0755)
 	if err != nil {
 		Logger.Error(err.Error())
 		InternalError(response)
