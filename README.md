@@ -25,7 +25,7 @@ sudo systemctl start cabinet
 Then I suggest you use something like caddy, nginx, or apache to proxy to it. If you want help with that I'll be around.
 You can find me at @vvesley.bsky.social
 
-### If you want to watch the logs you can just use journalctl because we log to stdout
+### If you want to watch the logs you can just use journalctl because we have logging set to journal to in the service file
 ```
 sudo journalctl -fu cabinet
 ```
