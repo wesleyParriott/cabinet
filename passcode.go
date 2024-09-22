@@ -34,7 +34,6 @@ func setPasscode() error {
 	}
 
 	PASSCODE = strings.Trim(string(passcode), "\n")
-	Logger.Debug("passcode: %v", PASSCODE)
 
 	return nil
 }

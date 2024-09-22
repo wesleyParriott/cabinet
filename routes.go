@@ -205,8 +205,7 @@ func SlopMeUp(response http.ResponseWriter, request *http.Request) {
 
 func Upload(response http.ResponseWriter, request *http.Request) {
 	Logger.Info("Entering upload route")
-	// we get something like this:
-	// /upload?part=0&whichdir=test&filename=encodedfilename
+
 	queryValues, err := url.ParseQuery(request.URL.RawQuery)
 	if err != nil {
 		Logger.Error("during upload %s", err.Error())
@@ -219,12 +218,7 @@ func Upload(response http.ResponseWriter, request *http.Request) {
 		BadRequest(response)
 		return
 	}
-	whichdir, okay := queryValues["whichdir"]
-	if !okay {
-		Logger.Error("query value whichdir wasn't found")
-		BadRequest(response)
-		return
-	}
+
 	filename, okay := queryValues["filename"]
 	if !okay {
 		Logger.Error("query value filename wasn't found")
@@ -232,24 +226,55 @@ func Upload(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	Logger.Debug("part: %s; whichdir: %s, filename: %s", part, whichdir, filename)
-	contents, err := io.ReadAll(http.MaxBytesReader(response, request.Body, int64(MB(100))))
-	if err != nil {
-		Logger.Error("file %s part %s too big", filename, part)
-		EntityTooLarge(response)
-		return
-	}
-	// then we save the body to a file named part-whichdir-filename in /tmp
-	fileNameToSave := fmt.Sprintf("%s-%s", part[0], filename[0])
-	Logger.Debug("%s", fileNameToSave)
-	err = os.WriteFile("/tmp/"+fileNameToSave, contents, 0755)
+	maxReader := http.MaxBytesReader(response, request.Body, int64(MB(32)))
+	defer maxReader.Close()
+
+	fileNameToSave := fmt.Sprintf("/tmp/%s-%s", part[0], filename[0])
+
+	f, err := os.OpenFile(fileNameToSave, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		Logger.Error(err.Error())
 		InternalError(response)
 		return
 	}
+	defer f.Close()
 
-	Okay(response, []byte("done"))
+	// Logger.Debug("reading request body")
+	// intendedBuffSize := MB(32)
+	// buff := make([]byte, intendedBuffSize)
+	// readed, err := io.ReadFull(maxReader, buff)
+	// if err != nil {
+	// 	if !errors.Is(err, io.ErrUnexpectedEOF) {
+	// 		Logger.Error("file %s part %s was maybe too big\nerror returned: %s", filename, part, err.Error())
+	// 		InternalError(response)
+	// 		return
+	// 	}
+	// }
+	// Logger.Debug("read %db from request body", readed)
+
+	// if readed < intendedBuffSize {
+	// 	buff = buff[:readed]
+	// }
+
+	// Logger.Debug("writing %db to %s", len(buff), fileNameToSave)
+	// written, err := f.Write(buff)
+	// if err != nil {
+	// 	Logger.Error("when writing %s: %s", fileNameToSave, err.Error)
+	// 	InternalError(response)
+	// 	return
+	// }
+	// Logger.Debug("wrote %db to %s", written, fileNameToSave)
+
+	Logger.Debug("reading request body and copying to file")
+	written, err := io.Copy(f, maxReader)
+	if err != nil {
+		Logger.Error("file %s part %s was maybe too big\nError returned: %s", filename, part, err.Error())
+		InternalError(response)
+		return
+	}
+	Logger.Debug("wrote %db to file", written)
+
+	Okay(response, []byte("job done"))
 }
 
 func Stitch(response http.ResponseWriter, request *http.Request) {

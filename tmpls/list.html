@@ -3,14 +3,14 @@
 <button id="download_all_button">Download All</button>
 
 <button id="upload_dialog_open_button">+</button>
-<dialog id="upload_dialog" close>
-    <article>
+<dialog id="upload_dialog"  class="overflow-auto" close>
+    <section id="upload_dialog_section">
         <button id="upload_dialog_close_button">x</button>
         <form id="upload_form" method="POST">
-            <input id="upload_file_input" type="file" name="file"/>
+            <input id="upload_file_input" type="file" name="file" multiple>
             <button type="submit" id="upload_file_submit_button" aria-busy="false">submit</button>
         </form>
-    </article>
+    </section>
 </dialog>
 
 <article id="items" style="max-height:30rem" class="overflow-auto">
@@ -52,54 +52,118 @@
         uploadForm.onsubmit = async function(e) {
             e.preventDefault();
 
+            addOutputHeaderToSection();
+            var output = addOutputToSection();
+
             var uploadFileSubmitButton = document.getElementById("upload_file_submit_button");
             uploadFileSubmitButton.ariaBusy = "true"
 
             var uploadFileInput = document.getElementById("upload_file_input");
-            var file = uploadFileInput.files[0];
 
-            var size = file.size;
-            var nominalChunkSize = 100*1024*1024; // 100 mb
-            var howManyChunks = Math.ceil(size/nominalChunkSize);
-            console.log(file);
-            console.log("size: ", size, "how many chunks: ", howManyChunks);
+            for(let i=0; i < uploadFileInput.files.length; i++) {
+                var file = uploadFileInput.files[i];
 
-            var route = "/upload?";
-            var urlParameters = new URLSearchParams(window.location.search);
-            var whichdir = urlParameters.get('whichdir');
-            var filename = file.name;
+                var size = file.size;
+                var nominalChunkSize = 32*1024*1024; // 32 mb
+                var howManyChunks = Math.ceil(size/nominalChunkSize);
 
-            for(let i=0; i<howManyChunks; i++) {
-                var uri = route + "part=" + i + "&whichdir=" + whichdir + "&filename=" + filename;
-                console.log(uri);
-                console.log(encodeURI(uri));
-                var start=i*nominalChunkSize;
-                var end=(i+1)*nominalChunkSize;
-                var s = file.slice(start,end);
-                console.log(s);
+                console.log(file);
+                console.log("size: ", size, "how many chunks: ", howManyChunks);
+
+                var route = "/upload?";
+                var urlParameters = new URLSearchParams(window.location.search);
+                var whichdir = urlParameters.get('whichdir');
+                var filename = file.name;
+
+                for(let i=0; i<howManyChunks; i++) {
+                    var uri = route + "part=" + i + "&filename=" + filename;
+                    var start=i*nominalChunkSize;
+                    var end=(i+1)*nominalChunkSize;
+                    var s = file.slice(start,end);
+                    var percent = Math.floor(i/howManyChunks*100);
+
+                    buildOutputTable(output, uploadFileInput.files, filename, percent);
+
+                    try {
+                        var response = await fetch(uri, {
+                            method: 'POST',
+                            body: s
+                        });
+                    } catch (err) {
+                        console.log(err);
+                        return
+                    }
+
+                }
+
+                var uri = "/stitch?whichdir=" + whichdir + "&whichfile=" + filename;
                 try {
-                    var response = await fetch(uri, {
-                        method: 'POST',
-                        body: s
-                    });
+                    var response = await fetch(uri, { method: 'POST' });
                 } catch (err) {
                     console.log(err);
                     return
                 }
+
+                uploadFileSubmitButton.ariaBusy = "false"
             }
 
-            var uri = "/stitch?whichdir=" + whichdir + "&whichfile=" + filename;
-            try {
-                var response = await fetch(uri, { method: 'POST' });
-            } catch (err) {
-                console.log(err);
-                return
-            }
-
-            uploadFileSubmitButton.ariaBusy = "false"
-            
             location.reload();
         }
 
+        function addOutputHeaderToSection() {
+            var uploadDialogSection=document.getElementById("upload_dialog_section");
+
+            var b = document.createElement("b");
+            b.innerText = "Output";
+            
+            uploadDialogSection.appendChild(b);
+        }
+
+        function addOutputToSection() {
+            var uploadDialogSection=document.getElementById("upload_dialog_section");
+
+            var output = document.createElement("table");
+            
+            uploadDialogSection.appendChild(output);
+
+            return output
+        }
+
+        function removeAllChildrenFrom(element) {
+            element.innerHTML = '';
+        }
+
+        function buildOutputTable(outputTable, files, givenFileName, percent) {
+            removeAllChildrenFrom(outputTable);
+
+            for (let i=0; i<files.length; i++) {
+                var currentFileName = files[i].name;
+                var uploading = (currentFileName == givenFileName);
+
+                var tr = document.createElement("tr");
+                
+                var tdStatus = document.createElement("td");
+                if (uploading) {
+                    tdStatus.innerText = "uploading";
+                } else {
+                    tdStatus.innerText = "waiting";
+                }
+                tr.appendChild(tdStatus);
+
+                var tdName = document.createElement("td");
+                tdName.innerText = currentFileName;
+                tr.appendChild(tdName);
+
+                var tdPercent = document.createElement("td");
+
+                if (uploading) {
+                    tdPercent.innerText = percent+"%";
+                }
+
+                tr.appendChild(tdPercent);
+
+                outputTable.appendChild(tr);
+           }
+        }
     }
 </script>
