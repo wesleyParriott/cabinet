@@ -7,12 +7,26 @@ func Okay(response http.ResponseWriter, message []byte) {
 	response.Write(message)
 }
 
+func Created(response http.ResponseWriter, location string) {
+	response.WriteHeader(http.StatusCreated)
+	response.Header().Set("Location", location)
+	response.Write([]byte("Created " + location))
+}
+
 // 300s
-// ...
+// ..
 
 // 400s
 func BadRequest(response http.ResponseWriter) {
 	http.Error(response, http.StatusText(400), 400)
+}
+
+func Forbidden(response http.ResponseWriter) {
+	http.Error(response, http.StatusText(403), 403)
+}
+
+func Conflict(response http.ResponseWriter) {
+	http.Error(response, http.StatusText(409), 409)
 }
 
 func EntityTooLarge(response http.ResponseWriter) {
