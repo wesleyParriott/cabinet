@@ -12,15 +12,6 @@ import (
 	"facette.io/natsort"
 )
 
-// EntryNotAllowed will write a 200 with the text "entry not allowed"
-// 200 is used here because laziness
-// FIXME use 403
-func EntryNotAllowed(response http.ResponseWriter, request *http.Request) {
-	_ = request
-
-	response.Write([]byte("entry not allowed"))
-}
-
 func getPasscodeCookie(r *http.Request) (http.Cookie, error) {
 	cookie, err := r.Cookie("passcode")
 	if err != nil {
@@ -30,7 +21,6 @@ func getPasscodeCookie(r *http.Request) (http.Cookie, error) {
 }
 
 func whatsThePasscode(response http.ResponseWriter, request *http.Request) error {
-
 	Logger.Info("asking for the passcode")
 	Logger.Debug("request uri: %s", request.RequestURI)
 
@@ -79,7 +69,7 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 				// FIXME: 500
 			}
 
-			EntryNotAllowed(response, request)
+			Forbidden(response)
 			return
 		}
 
@@ -88,7 +78,7 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 		passcode := cookie.Value
 		if passcode != PASSCODE {
 			Logger.Info("passcode incorrect sending them away")
-			EntryNotAllowed(response, request)
+			Forbidden(response)
 			return
 		}
 
@@ -122,6 +112,14 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 			return
 		}
 		Stitch(response, request)
+		return
+	} else if strings.ToLower(request.URL.Path) == "/mkdir" {
+		if request.Method != "POST" {
+			Logger.Error("Wrong Method: %s", request.Method)
+			BadRequest(response)
+			return
+		}
+		Mkdir(response, request)
 		return
 	}
 
@@ -169,12 +167,15 @@ func List(response http.ResponseWriter, request *http.Request, whichdir string) 
 	fileNames, err := listDir("/usr/local/share/Cabinet/" + whichdir)
 	if err != nil {
 		Logger.Error("err when listing files: %s", err)
+		InternalError(response)
+		return
 	}
 
 	content, err := ParseListTemplate(whichdir, fileNames)
 	if err != nil {
-		Logger.Fatal("error when parsing template: %s", err)
-		// FIXME: 500
+		Logger.Error("error when parsing template: %s", err)
+		InternalError(response)
+		return
 	}
 
 	Okay(response, []byte(content))
@@ -188,12 +189,12 @@ func SlopMeUp(response http.ResponseWriter, request *http.Request) {
 		// FIXME: 500 instead of hard fatal
 		Logger.Fatal("spilled the soup because: %s", err)
 	}
-	// FIXME: move to frontdoor?
-	Logger.Info("%v", queryValues)
+
+	Logger.Debug("%v", queryValues)
 	soups, okay := queryValues["soup"]
 	if !okay {
 		Logger.Info("no soup parameter. Entry not allowed")
-		EntryNotAllowed(response, request)
+		Forbidden(response)
 		return
 	}
 	soup := soups[0]
@@ -201,6 +202,50 @@ func SlopMeUp(response http.ResponseWriter, request *http.Request) {
 	path := CABINETLOCATION + soup
 	Logger.Debug("path  " + path)
 	http.ServeFile(response, request, path)
+}
+
+func Mkdir(response http.ResponseWriter, request *http.Request) {
+	Logger.Info("Entering Mkdir route")
+
+	queryValues, err := url.ParseQuery(request.URL.RawQuery)
+	if err != nil {
+		Logger.Error("during upload %s", err.Error())
+		InternalError(response)
+		return
+	}
+
+	whichdir, okay := queryValues["whichdir"]
+	if !okay {
+		Logger.Error("query value whichdir wasn't found")
+		BadRequest(response)
+		return
+	}
+	Logger.Debug("%s", whichdir)
+
+	newdir, okay := queryValues["newdir"]
+	if !okay {
+		Logger.Error("query value newdir wasn't found")
+		BadRequest(response)
+		return
+	}
+	Logger.Debug("%s", newdir)
+
+	url := CABINETLOCATION + whichdir[0] + "/" + newdir[0]
+	Logger.Debug("%s", url)
+
+	err = os.Mkdir(url, 0755)
+	if err != nil {
+		if os.IsExist(err) {
+			Logger.Error("os already exists sending back a 409")
+			Conflict(response)
+			return
+		}
+		Logger.Error("when trying to make dir at %s: %s", url, err)
+		InternalError(response)
+		return
+	}
+
+	Created(response, whichdir[0]+"/"+newdir[0])
 }
 
 func Upload(response http.ResponseWriter, request *http.Request) {
@@ -350,8 +395,6 @@ func Stitch(response http.ResponseWriter, request *http.Request) {
 		}
 		os.Remove(part)
 	}
-
-	Logger.Info("Done stitching, sending the okay")
 
 	Okay(response, []byte("job done"))
 }

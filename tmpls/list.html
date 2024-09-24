@@ -2,13 +2,25 @@
 
 <button id="download_all_button">Download All</button>
 
-<button id="upload_dialog_open_button">+</button>
-<dialog id="upload_dialog"  class="overflow-auto" close>
-    <section id="upload_dialog_section">
-        <button id="upload_dialog_close_button">x</button>
-        <form id="upload_form" method="POST">
+<button id="upload_file_dialog_open_button" title="add a file">add a file</button>
+<dialog id="upload_file_dialog"  class="overflow-auto" close>
+    <section id="upload_file_dialog_section">
+        <button id="upload_file_dialog_close_button">x</button>
+        <form id="upload_file_form" method="POST">
             <input id="upload_file_input" type="file" name="file" multiple>
             <button type="submit" id="upload_file_submit_button" aria-busy="false">submit</button>
+        </form>
+    </section>
+</dialog>
+
+<button id="create_dir_dialog_open_button" title="add a directory">add a directory</button>
+<dialog id="create_dir_dialog"  class="overflow-auto" close>
+    <section id="create_dir_dialog_section">
+        <button id="create_dir_dialog_close_button">x</button>
+        <form id="create_dir_form" method="POST" action="/mkdir">
+            <label for="newdir">new directory name<label>
+            <input id="create_dir_input" type="text" name="newdir">
+            <button type="submit" id="create_dir_submit_button" aria-busy="false">submit</button>
         </form>
     </section>
 </dialog>
@@ -35,17 +47,62 @@
             }
         }
 
-        var uploadDialogOpenButton = document.getElementById("upload_dialog_open_button");
-        var uploadDialogCloseButton = document.getElementById("upload_dialog_close_button");
-        var uploadForm = document.getElementById("upload_form");
+        var createDirDialogOpenButton = document.getElementById("create_dir_dialog_open_button");
+        var createDirDialogCloseButton = document.getElementById("create_dir_dialog_close_button");
+        var createDirForm = document.getElementById("create_dir_form");
+        var uploadDialogOpenButton = document.getElementById("upload_file_dialog_open_button");
+        var uploadDialogCloseButton = document.getElementById("upload_file_dialog_close_button");
+        var uploadForm = document.getElementById("upload_file_form");
+
+        createDirDialogOpenButton.onclick = function() {
+            var createDirDialog=document.getElementById("create_dir_dialog");
+            createDirDialog.open = true;
+        }
+
+        createDirDialogCloseButton.onclick = function() {
+            var createDirDialog=document.getElementById("create_dir_dialog");
+            createDirDialog.open = false;
+        }
+
+        createDirForm.onsubmit = async function(e) {
+            e.preventDefault();
+
+            var route = "/mkdir"
+            var urlParameters = new URLSearchParams(window.location.search);
+            var whichdir = "whichdir=" + urlParameters.get('whichdir');
+            var createDirInput = document.getElementById("create_dir_input");
+            var newdir = "newdir=" + createDirInput.value;
+            var uri = route + "?" + whichdir + "&" + newdir;
+
+            try {
+                var response = await fetch(uri, {
+                    method: 'POST'
+                });
+                if (response.status == 409) {
+                    alert( createDirInput.value + " already created. Redirecting you there");
+                } else if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                } else {
+                    console.log(response);
+                }
+            } catch (err) {
+                console.log(err);
+                alert("is broken, let vvesley know");
+                return
+            }
+
+
+            location.replace("/?whichdir="+urlParameters.get('whichdir')+"/"+createDirInput.value);
+        }
+
 
         uploadDialogOpenButton.onclick = function() {
-            var uploadDialog=document.getElementById("upload_dialog");
+            var uploadDialog=document.getElementById("upload_file_dialog");
             uploadDialog.open = true;
         }
 
         uploadDialogCloseButton.onclick = function() {
-            var uploadDialog=document.getElementById("upload_dialog");
+            var uploadDialog=document.getElementById("upload_file_dialog");
             uploadDialog.open = false;
         }
 
@@ -111,7 +168,7 @@
         }
 
         function addOutputHeaderToSection() {
-            var uploadDialogSection=document.getElementById("upload_dialog_section");
+            var uploadDialogSection=document.getElementById("upload_file_dialog_section");
 
             var b = document.createElement("b");
             b.innerText = "Output";
@@ -120,7 +177,7 @@
         }
 
         function addOutputToSection() {
-            var uploadDialogSection=document.getElementById("upload_dialog_section");
+            var uploadDialogSection=document.getElementById("upload_file_dialog_section");
 
             var output = document.createElement("table");
             
