@@ -62,7 +62,9 @@ func listDir(path string) ([]string, error) {
 		return ret, err
 	}
 	for _, entry := range entries {
-		ret = append(ret, entry.Name())
+		if !entry.IsDir() {
+			ret = append(ret, entry.Name())
+		}
 	}
 
 	return ret, nil
