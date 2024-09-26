@@ -164,14 +164,14 @@ func List(response http.ResponseWriter, request *http.Request, whichdir string) 
 
 	_ = request
 
-	fileNames, err := listDir("/usr/local/share/Cabinet/" + whichdir)
+	fileNames, dirNames, err := listDir("/usr/local/share/Cabinet/" + whichdir)
 	if err != nil {
 		Logger.Error("err when listing files: %s", err)
 		InternalError(response)
 		return
 	}
 
-	content, err := ParseListTemplate(whichdir, fileNames)
+	content, err := ParseListTemplate(whichdir, fileNames, dirNames)
 	if err != nil {
 		Logger.Error("error when parsing template: %s", err)
 		InternalError(response)
@@ -347,7 +347,7 @@ func Stitch(response http.ResponseWriter, request *http.Request) {
 	Logger.Debug("which-dir: %s which-file: %s", whichdir, whichfile)
 
 	// list everything in temp
-	fileNames, err := listDir("/tmp")
+	fileNames, _, err := listDir("/tmp")
 	if err != nil {
 		Logger.Error("when listing /tmp: %s", err.Error())
 		InternalError(response)

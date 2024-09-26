@@ -1,4 +1,16 @@
-<h1> C A B I N E T </h1>
+<h1> Cabinet </h1>
+{{ if  .Directories }} 
+<b>Directories</b>
+<article class="overflow-auto">
+    {{ range $dir := .Directories }}
+        <div>
+            <a href="/?whichdir={{$dir}}">{{$dir}}</a>
+        </div>
+    {{ end }}
+</article>
+{{ else }} 
+    <b> no directories found </b>
+{{ end  }}
 <form>
     <input type="text" name="whichdir" \>
     <input type="submit" value="search" \>

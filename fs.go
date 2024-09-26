@@ -55,17 +55,22 @@ func copyFile(currentFilePath string, destFilePath string) error {
 	return nil
 }
 
-func listDir(path string) ([]string, error) {
+// listDir looks takes in a path and returns both the files
+// in that path in one array and the directories in another
+func listDir(path string) ([]string, []string, error) {
 	entries, err := os.ReadDir(path)
-	var ret []string
+	var files []string
+	var dirs []string
 	if err != nil {
-		return ret, err
+		return files, dirs, err
 	}
 	for _, entry := range entries {
-		if !entry.IsDir() {
-			ret = append(ret, entry.Name())
+		if entry.IsDir() {
+			dirs = append(dirs, entry.Name())
+		} else {
+			files = append(files, entry.Name())
 		}
 	}
 
-	return ret, nil
+	return files, dirs, nil
 }

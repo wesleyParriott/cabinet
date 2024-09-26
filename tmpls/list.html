@@ -1,5 +1,9 @@
 {{ $whichdir := .Whichdir }}
 
+<header>
+    <h1> {{ $whichdir }} </h1>
+</header>
+
 <button id="download_all_button">Download All</button>
 
 <button id="upload_file_dialog_open_button" title="add a file">add a file</button>
@@ -26,16 +30,30 @@
 </dialog>
 
 <article id="items" style="max-height:30rem" class="overflow-auto">
-{{ if .Paths }} 
-    {{ range $path := .Paths }} 
+{{ if .Files }} 
+    {{ range $file := .Files }} 
     <div> 
-        <a href="/slopmeup?soup={{$whichdir}}%2F{{$path}}" download="{{$path}}" >{{$path}}</a>
+        <a href="/slopmeup?soup={{$whichdir}}%2F{{$file}}" download="{{$file}}" >{{$file}}</a>
     </div>
     {{ end }}
 {{ else }} 
     <b>no files found</b>
 {{ end }}
 </article>
+
+{{ if .Directories }}
+<article>
+    <details closed>
+        <summary> Subdirectories </summary>
+        {{ range $dir := .Directories }}
+            <p> 
+                <a href="/?whichdir={{$whichdir}}%2F{{$dir}}">{{$dir}}</a>
+            </p>
+        {{ end }}
+    </details>
+</article>
+{{ end}}
+
 <script>
     window.onload = function() {
         var downloadAllButton = document.getElementById("download_all_button");

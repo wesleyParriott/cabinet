@@ -9,6 +9,16 @@ import (
 const TemplateFolder = "./tmpls/"
 
 func ParseIndexTemplate() (string, error) {
+	type Info struct {
+		Directories []string
+	}
+
+	_, dirs, err := listDir(CABINETLOCATION)
+
+	info := Info{
+		dirs,
+	}
+
 	indexFileContents, err := os.ReadFile(TemplateFolder + "index.html")
 	if err != nil {
 		return "", err
@@ -20,7 +30,7 @@ func ParseIndexTemplate() (string, error) {
 	}
 
 	var buff bytes.Buffer
-	err = tmpl.Execute(&buff, nil)
+	err = tmpl.Execute(&buff, info)
 	if err != nil {
 		return "", err
 	}
@@ -28,15 +38,17 @@ func ParseIndexTemplate() (string, error) {
 	return parseMainTemplate("Index", buff.String())
 
 }
-func ParseListTemplate(whichdir string, paths []string) (string, error) {
+func ParseListTemplate(whichdir string, fileNames []string, dirNames []string) (string, error) {
 	type Info struct {
-		Whichdir string
-		Paths    []string
+		Whichdir    string
+		Files       []string
+		Directories []string
 	}
 
 	info := Info{
 		whichdir,
-		paths,
+		fileNames,
+		dirNames,
 	}
 
 	listFileContents, err := os.ReadFile(TemplateFolder + "list.html")

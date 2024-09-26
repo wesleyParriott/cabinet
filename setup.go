@@ -91,7 +91,7 @@ func makeCabinetDataDirectory() error {
 	}
 
 	// list every file in ./tmpls
-	fileNames, err := listDir("./tmpls")
+	fileNames, _, err := listDir("./tmpls")
 	for _, fileName := range fileNames {
 		Logger.Debug("copying %s", fileName)
 		filePath := "./tmpls/" + fileName
