@@ -121,6 +121,16 @@ func FrontDoor(response http.ResponseWriter, request *http.Request) {
 		}
 		Mkdir(response, request)
 		return
+	} else if strings.ToLower(request.URL.Path) == "/isthere" {
+		if request.Method != "GET" {
+			Logger.Error("Wrong Method: %s", request.Method)
+			BadRequest(response)
+			return
+		}
+
+		IsThere(response, request)
+
+		return
 	}
 
 	whichdir, okay := queryValues["whichdir"]
@@ -246,6 +256,64 @@ func Mkdir(response http.ResponseWriter, request *http.Request) {
 	}
 
 	Created(response, whichdir[0]+"/"+newdir[0])
+}
+
+func IsThere(response http.ResponseWriter, request *http.Request) {
+	Logger.Info("Entering isthere route")
+
+	queryValues, err := url.ParseQuery(request.URL.RawQuery)
+	if err != nil {
+		Logger.Error("during upload %s", err.Error())
+		InternalError(response)
+		return
+	}
+
+	whichdir, okay := queryValues["whichdir"]
+	if !okay {
+		Logger.Error("query value whichdir wasn't found")
+		BadRequest(response)
+		return
+	}
+
+	filename, okay := queryValues["filename"]
+	if !okay {
+		Logger.Error("query value filename wasn't found")
+		BadRequest(response)
+		return
+	}
+
+	path := CABINETLOCATION + whichdir[0]
+
+	files, dirs, err := listDir(path)
+	if err != nil {
+		if os.IsExist(err) {
+			Logger.Error("%s not found. Returning 404", path)
+			NotFound(response)
+			return
+		}
+
+		Logger.Error("when lising dir %s", err)
+		InternalError(response)
+		return
+	}
+
+	for _, file := range files {
+		if filename[0] == file {
+			Logger.Debug("found %s", file)
+			Conflict(response)
+			return
+		}
+	}
+
+	for _, dir := range dirs {
+		if whichdir[0] == dir {
+			Logger.Debug("found %s", dir)
+			Conflict(response)
+			return
+		}
+	}
+
+	Okay(response, []byte("false"))
 }
 
 func Upload(response http.ResponseWriter, request *http.Request) {

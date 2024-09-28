@@ -127,13 +127,12 @@
         uploadForm.onsubmit = async function(e) {
             e.preventDefault();
 
-            addOutputHeaderToSection();
-            var output = addOutputToSection();
-
             var uploadFileSubmitButton = document.getElementById("upload_file_submit_button");
             uploadFileSubmitButton.ariaBusy = "true"
 
             var uploadFileInput = document.getElementById("upload_file_input");
+
+            var outputcreated = false;
 
             for(let i=0; i < uploadFileInput.files.length; i++) {
                 var file = uploadFileInput.files[i];
@@ -149,6 +148,27 @@
                 var urlParameters = new URLSearchParams(window.location.search);
                 var whichdir = urlParameters.get('whichdir');
                 var filename = file.name;
+
+                var response = await fetch("/isthere?whichdir="+whichdir+"&filename="+filename, { method: 'GET' });
+                if (!response.ok) {
+                    uploadFileSubmitButton.ariaBusy = "false"
+                    var small = document.createElement("small");
+                    small.style.color = "red";
+                    if (response.status == 409) {
+                        small.innerText = filename + " is already there!";
+                    } else {
+                        small.innerText = "fuck, something went wrong";
+                    }
+                    uploadFileInput.after(small);
+
+                    return
+                }
+
+                if (!outputcreated) { 
+                    addOutputHeaderToSection();
+                    var output = addOutputToSection();
+                    outputcreated=true;
+                }
 
                 for(let i=0; i<howManyChunks; i++) {
                     var uri = route + "part=" + i + "&filename=" + filename;

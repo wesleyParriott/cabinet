@@ -25,6 +25,10 @@ func Forbidden(response http.ResponseWriter) {
 	http.Error(response, http.StatusText(403), 403)
 }
 
+func NotFound(response http.ResponseWriter) {
+	http.Error(response, http.StatusText(404), 404)
+}
+
 func Conflict(response http.ResponseWriter) {
 	http.Error(response, http.StatusText(409), 409)
 }
