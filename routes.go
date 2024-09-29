@@ -359,32 +359,6 @@ func Upload(response http.ResponseWriter, request *http.Request) {
 	}
 	defer f.Close()
 
-	// Logger.Debug("reading request body")
-	// intendedBuffSize := MB(32)
-	// buff := make([]byte, intendedBuffSize)
-	// readed, err := io.ReadFull(maxReader, buff)
-	// if err != nil {
-	// 	if !errors.Is(err, io.ErrUnexpectedEOF) {
-	// 		Logger.Error("file %s part %s was maybe too big\nerror returned: %s", filename, part, err.Error())
-	// 		InternalError(response)
-	// 		return
-	// 	}
-	// }
-	// Logger.Debug("read %db from request body", readed)
-
-	// if readed < intendedBuffSize {
-	// 	buff = buff[:readed]
-	// }
-
-	// Logger.Debug("writing %db to %s", len(buff), fileNameToSave)
-	// written, err := f.Write(buff)
-	// if err != nil {
-	// 	Logger.Error("when writing %s: %s", fileNameToSave, err.Error)
-	// 	InternalError(response)
-	// 	return
-	// }
-	// Logger.Debug("wrote %db to %s", written, fileNameToSave)
-
 	Logger.Debug("reading request body and copying to file")
 	written, err := io.Copy(f, maxReader)
 	if err != nil {
@@ -473,59 +447,3 @@ func Stitch(response http.ResponseWriter, request *http.Request) {
 
 	Okay(response, []byte("job done"))
 }
-
-// func Upload(response http.ResponseWriter, request *http.Request) {
-// 	Logger.Info("Entering upload route")
-//
-// 	destination := request.Header.Get("X-Destination")
-// 	Logger.Info("File Destination: %s", destination)
-//
-// 	maxUploadSize := int64(1024 * 1024 * 1024 * 1024)
-//
-// 	err := request.ParseMultipartForm(maxUploadSize)
-// 	if err != nil {
-// 		Logger.Error("when trying to parse multipart form: %s", err.Error())
-// 		InternalError(response)
-// 		return
-// 	}
-//
-// 	files := request.MultipartForm.File["file"]
-//
-// 	for _, fileHeader := range files {
-// 		Logger.Debug("FILE HEADER INFO\n\tFile Name: %s\n\t File Size: %d", fileHeader.Filename, fileHeader.Size)
-//
-// 		if fileHeader.Size > maxUploadSize {
-// 			Logger.Error("%s too big", fileHeader.Filename)
-// 			EntityTooLarge(response)
-// 			return
-// 		}
-//
-// 		filePath := fmt.Sprintf("%s/%s/%s", CABINETLOCATION, destination, fileHeader.Filename)
-//
-// 		givenFile, err := fileHeader.Open()
-// 		if err != nil {
-// 			Logger.Error("when trying to open fileHeader: %s", fileHeader.Filename)
-// 			InternalError(response)
-// 			return
-// 		}
-//
-// 		Logger.Info("writing file to %s", filePath)
-// 		f, err := os.Create(filePath)
-// 		if err != nil {
-// 			Logger.Error(err.Error())
-// 			InternalError(response)
-// 			return
-// 		}
-// 		defer f.Close()
-//
-// 		_, err = io.Copy(f, givenFile)
-// 		if err != nil {
-// 			Logger.Error(err.Error())
-// 			InternalError(response)
-// 			return
-// 		}
-//
-// 	}
-//
-// 	Okay(response, []byte("got it"))
-// }
