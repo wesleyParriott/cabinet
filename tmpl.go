@@ -10,13 +10,29 @@ const TemplateFolder = "./tmpls/"
 
 func ParseIndexTemplate() (string, error) {
 	type Info struct {
-		Directories []string
+		Directories            []string
+		CreateDirectoryForm    string
+		CreateDirFunctionality string
 	}
 
 	_, dirs, err := listDir(CABINETLOCATION)
 
+	createDirectoryForm, err := getCreateFormDirHTML()
+	if err != nil {
+		Logger.Error("when getting the create directory dir html %s", err)
+		return "", err
+	}
+
+	createDirectoryFunctionality, err := getCreateFormDirJS()
+	if err != nil {
+		Logger.Error("when getting the create directory dir js %s", err)
+		return "", err
+	}
+
 	info := Info{
 		dirs,
+		createDirectoryForm,
+		createDirectoryFunctionality,
 	}
 
 	indexFileContents, err := os.ReadFile(TemplateFolder + "index.html")
@@ -38,17 +54,34 @@ func ParseIndexTemplate() (string, error) {
 	return parseMainTemplate("Index", buff.String())
 
 }
+
 func ParseListTemplate(whichdir string, fileNames []string, dirNames []string) (string, error) {
 	type Info struct {
-		Whichdir    string
-		Files       []string
-		Directories []string
+		Whichdir               string
+		Files                  []string
+		Directories            []string
+		CreateDirectoryForm    string
+		CreateDirFunctionality string
+	}
+
+	createDirectoryForm, err := getCreateFormDirHTML()
+	if err != nil {
+		Logger.Error("when getting the create directory dir html %s", err)
+		return "", err
+	}
+
+	createDirectoryFunctionality, err := getCreateFormDirJS()
+	if err != nil {
+		Logger.Error("when getting the create directory dir js %s", err)
+		return "", err
 	}
 
 	info := Info{
 		whichdir,
 		fileNames,
 		dirNames,
+		createDirectoryForm,
+		createDirectoryFunctionality,
 	}
 
 	listFileContents, err := os.ReadFile(TemplateFolder + "list.html")
@@ -70,8 +103,25 @@ func ParseListTemplate(whichdir string, fileNames []string, dirNames []string) (
 	return parseMainTemplate(whichdir, buff.String())
 }
 
-func ParsePasscodeTemplate(route string) (string, error) {
+func getCreateFormDirHTML() (string, error) {
+	createDirForm, err := os.ReadFile(TemplateFolder + "createformdir.html")
+	if err != nil {
+		return "", err
+	}
 
+	return string(createDirForm), err
+}
+
+func getCreateFormDirJS() (string, error) {
+	createDirForm, err := os.ReadFile(TemplateFolder + "createformdir.js")
+	if err != nil {
+		return "", err
+	}
+
+	return string(createDirForm), err
+}
+
+func ParsePasscodeTemplate(route string) (string, error) {
 	Logger.Debug("route passed to ParsePasscodeTemplate: %s", route)
 
 	type Info struct {

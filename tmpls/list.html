@@ -1,4 +1,5 @@
 {{ $whichdir := .Whichdir }}
+{{ $createdirectoryform := .CreateDirectoryForm }}
 
 <header>
     <h1> {{ $whichdir }} </h1>
@@ -17,17 +18,7 @@
     </section>
 </dialog>
 
-<button id="create_dir_dialog_open_button" title="add a directory">add a directory</button>
-<dialog id="create_dir_dialog"  class="overflow-auto" close>
-    <section id="create_dir_dialog_section">
-        <button id="create_dir_dialog_close_button">x</button>
-        <form id="create_dir_form" method="POST" action="/mkdir">
-            <label for="newdir">new directory name<label>
-            <input id="create_dir_input" type="text" name="newdir">
-            <button type="submit" id="create_dir_submit_button" aria-busy="false">submit</button>
-        </form>
-    </section>
-</dialog>
+{{ .CreateDirectoryForm }}
 
 <article id="items" style="max-height:30rem" class="overflow-auto">
 {{ if .Files }} 
@@ -65,54 +56,9 @@
             }
         }
 
-        var createDirDialogOpenButton = document.getElementById("create_dir_dialog_open_button");
-        var createDirDialogCloseButton = document.getElementById("create_dir_dialog_close_button");
-        var createDirForm = document.getElementById("create_dir_form");
         var uploadDialogOpenButton = document.getElementById("upload_file_dialog_open_button");
         var uploadDialogCloseButton = document.getElementById("upload_file_dialog_close_button");
         var uploadForm = document.getElementById("upload_file_form");
-
-        createDirDialogOpenButton.onclick = function() {
-            var createDirDialog=document.getElementById("create_dir_dialog");
-            createDirDialog.open = true;
-        }
-
-        createDirDialogCloseButton.onclick = function() {
-            var createDirDialog=document.getElementById("create_dir_dialog");
-            createDirDialog.open = false;
-        }
-
-        createDirForm.onsubmit = async function(e) {
-            e.preventDefault();
-
-            var route = "/mkdir"
-            var urlParameters = new URLSearchParams(window.location.search);
-            var whichdir = "whichdir=" + urlParameters.get('whichdir');
-            var createDirInput = document.getElementById("create_dir_input");
-            var newdir = "newdir=" + createDirInput.value;
-            var uri = route + "?" + whichdir + "&" + newdir;
-
-            try {
-                var response = await fetch(uri, {
-                    method: 'POST'
-                });
-                if (response.status == 409) {
-                    alert( createDirInput.value + " already created. Redirecting you there");
-                } else if (!response.ok) {
-                    throw new Error(`Response status: ${response.status}`);
-                } else {
-                    console.log(response);
-                }
-            } catch (err) {
-                console.log(err);
-                alert("is broken, let vvesley know");
-                return
-            }
-
-
-            location.replace("/?whichdir="+urlParameters.get('whichdir')+"/"+createDirInput.value);
-        }
-
 
         uploadDialogOpenButton.onclick = function() {
             var uploadDialog=document.getElementById("upload_file_dialog");
@@ -260,5 +206,7 @@
                 outputTable.appendChild(tr);
            }
         }
+
+        {{ .CreateDirFunctionality }}
     }
 </script>

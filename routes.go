@@ -240,7 +240,14 @@ func Mkdir(response http.ResponseWriter, request *http.Request) {
 	}
 	Logger.Debug("%s", newdir)
 
-	url := CABINETLOCATION + whichdir[0] + "/" + newdir[0]
+	// this is checking the case where the user makes a dir from /
+	var url string
+	if whichdir[0] == "" {
+		url = CABINETLOCATION + newdir[0]
+
+	} else {
+		url = CABINETLOCATION + whichdir[0] + "/" + newdir[0]
+	}
 	Logger.Debug("%s", url)
 
 	err = os.Mkdir(url, 0755)
