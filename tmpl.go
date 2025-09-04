@@ -17,6 +17,10 @@ func ParseIndexTemplate() (string, error) {
 
 	_, dirs, err := listDir(CABINETLOCATION)
 
+	if len(dirs) == 0 {
+		Logger.Error("no subdirectories in %s", CABINETLOCATION)
+	}
+
 	createDirectoryForm, err := getCreateFormDirHTML()
 	if err != nil {
 		Logger.Error("when getting the create directory dir html %s", err)
