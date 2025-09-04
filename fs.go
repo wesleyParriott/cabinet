@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/fs"
 	"os"
 	"os/user"
 	"strconv"
@@ -65,7 +66,11 @@ func listDir(path string) ([]string, []string, error) {
 		return files, dirs, err
 	}
 	for _, entry := range entries {
+		Logger.Debug("%s", entry.Name())
 		if entry.IsDir() {
+			dirs = append(dirs, entry.Name())
+		} else if entry.Type()&fs.ModeSymlink != 0 {
+			Logger.Debug("NOTE: %s is a symlink", entry.Name())
 			dirs = append(dirs, entry.Name())
 		} else {
 			files = append(files, entry.Name())
