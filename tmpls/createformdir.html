@@ -1,0 +1,11 @@
+<button id="create_dir_dialog_open_button" title="add a directory">add a directory</button>
+<dialog id="create_dir_dialog"  class="overflow-auto" close>
+    <section id="create_dir_dialog_section">
+        <button id="create_dir_dialog_close_button">x</button>
+        <form id="create_dir_form" method="POST" action="/mkdir">
+            <label for="newdir">new directory name<label>
+            <input id="create_dir_input" type="text" name="newdir">
+            <button type="submit" id="create_dir_submit_button" aria-busy="false">submit</button>
+        </form>
+    </section>
+</dialog>
